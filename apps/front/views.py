@@ -1,6 +1,6 @@
 from flask import Blueprint, views, render_template, request, session, url_for
-from flask import g, abort
-from .froms import SigninForm, SignupForm, AddPostForm, AddCommentForm
+from flask import g, abort, redirect
+from .froms import SigninForm, SignupForm, AddPostForm, AddCommentForm,ResetPwdForm
 from utils import restful, safeutils
 from .models import FrontUser
 from ..models import BannerModel, BoardModel
@@ -13,6 +13,13 @@ from sqlalchemy.sql import func
 
 
 bp = Blueprint("front", __name__)
+
+
+@bp.route('/logout/')
+def logout():
+    del session[config.FRONT_USER_ID]
+    return redirect(url_for('front.signin'))
+
 
 @bp.route('/')
 def index():
@@ -113,6 +120,32 @@ def apost():
             return restful.success()
         else:
             return restful.params_error(message=form.get_error())
+
+
+class ResetpwdView(views.MethodView):
+    def get(self):
+        return_to = url_for('front.signin')
+        if return_to and return_to != request.url and safeutils.is_safe_url(return_to):
+            return render_template('front/front_resetpwd.html', return_to=return_to)
+        else:
+            return render_template('front/front_resetpwd.html')
+    
+    def post(self):
+        form = ResetPwdForm(request.form)
+        if form.validate():
+            telephone = form.telephone.data
+            password = form.password1.data
+
+            user = FrontUser.query.filter_by(telephone=telephone).first()
+            if not user.check_password(password):
+                user.password = password
+                db.session.commit()
+                return restful.success(message="重置成功！")
+            else:
+                return restful.params_error(message="密码和原密码一致！")
+        else:
+            return restful.params_error(message=form.get_error())
+
             
 
 class SignupView(views.MethodView):
@@ -129,10 +162,13 @@ class SignupView(views.MethodView):
             telephone = form.telephone.data
             username = form.username.data
             password = form.password1.data
+            
+            # if old_telephone:
+            #     return restful.params_error(message="手机号已经注册，请重新登陆！")
             user = FrontUser(telephone=telephone, username=username, password=password)
             db.session.add(user)
             db.session.commit()
-            return restful.success()
+            return restful.success("注册成功！")
         else:
             print(form.get_error())
             return restful.params_error(message=form.get_error())
@@ -141,7 +177,8 @@ class SignupView(views.MethodView):
 class SigninView(views.MethodView):
     def get(self):
         return_to = request.referrer
-        if return_to and return_to != request.url and return_to != url_for("front.signup") and safeutils.is_safe_url(return_to):
+        if return_to and return_to != request.url and return_to != url_for("front.signup") and return_to != url_for("front.resetpwd") and safeutils.is_safe_url(return_to):
+            print(return_to)
             return render_template('front/front_signin.html', return_to=return_to)
         else:
             return render_template('front/front_signin.html')
@@ -157,7 +194,7 @@ class SigninView(views.MethodView):
                 session[config.FRONT_USER_ID] = user.id
                 if remember:
                     session.permanent = True
-                return restful.success()
+                return restful.success(message="登录成功！")
             else:
                 return restful.params_error(message='手机号或者密码错误！')
         else:
@@ -166,3 +203,4 @@ class SigninView(views.MethodView):
 
 bp.add_url_rule('/signup/', view_func=SignupView.as_view('signup'))
 bp.add_url_rule('/signin/', view_func=SigninView.as_view('signin'))
+bp.add_url_rule('/resetpwd/', view_func=ResetpwdView.as_view('resetpwd'))

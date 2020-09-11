@@ -240,8 +240,7 @@ class LoginView(views.MethodView):
 @permission_required(CMSPermission.POSTER)
 def posts():
     post_List = PostModel.query.all()
-  
-    return render_template('cms/cms_posts.html', post_List)
+    return render_template('cms/cms_posts.html', posts=post_List)
 
 
 @bp.route('/hpost/', methods=['POST'])

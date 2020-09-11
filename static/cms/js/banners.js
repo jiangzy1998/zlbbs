@@ -35,7 +35,7 @@ $(function () {
                 'image_url': image_url,
                 'link_url': link_url,
                 'priority':priority,
-                'banner_id': bannerId
+                'banner_id': bannerIdd
             },
             'success': function (data) {
                 dialog.modal("hide");

@@ -26,9 +26,8 @@ def create_app():
     return app
 
 Captcha.gene_graph_captcha()
-
+app = create_app()
 
 if __name__ == '__main__':
-    app = create_app()
     app.run(port=8000)
 

@@ -3,6 +3,7 @@ from wtforms import StringField
 from wtforms.validators import regexp, InputRequired
 import hashlib
 
+
 class SMSCaptchaForm(BaseForm):
     salt= 'jiangzy-love-caoxh'
     telephone = StringField(validators=[regexp(r'1[345789]\d{9}')])

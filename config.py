@@ -3,7 +3,7 @@ import os
 DEBUG = True
 
 DB_USERNAME = 'root'
-DB_PASSWORD = '123456'
+DB_PASSWORD = '123456789'
 DB_HOST = '127.0.0.1'
 DB_PORT = '3306'
 DB_NAME = 'zlbbs'
@@ -54,5 +54,8 @@ UEDITOR_QINIU_DOMAIN = "http://qfri4iq2f.hd-bkt.clouddn.com/"
 PER_PAGE = 10
 
 # celery相关的配置
-CELERY_RESULT_BACKEND = "redis://192.168.9.209:6379/0"
-CELERY_BROKER_URL = "redis://192.168.9.209:6379/0"
+CELERY_RESULT_BACKEND = "redis://127.0.0.1:6379/0"
+CELERY_BROKER_URL = "redis://127.0.0.1:6379/0"
+
+# memache client
+MEMACHE_CLIENT = "127.0.0.1:11211"

@@ -9,6 +9,7 @@ import string
 import random
 import qiniu
 from tasks import send_sms_captcha
+from apps.front.models import FrontUser
 
 
 bp = Blueprint("common", __name__, url_prefix="/c")
@@ -23,6 +24,25 @@ def sms_captcha():
     form = SMSCaptchaForm(request.form)
     if form.validate():
         telephone = form.telephone.data
+        old_user = FrontUser.query.filter_by(telephone=telephone).first()
+        if old_user:
+            return restful.params_error(message="手机号码已注册！")
+        captcha = Captcha.gene_text(number=4)
+        print('发送的短信验证码是:', captcha)
+        send_sms_captcha(telephone,captcha)
+        zlcache.set(telephone, captcha)
+        return restful.success()
+    else:
+        return restful.params_error(message='参数错误!')
+
+@bp.route('/sms_captcha_resetpwd/', methods=['POST'])
+def sms_captcha_resetpwd():
+    form = SMSCaptchaForm(request.form)
+    if form.validate():
+        telephone = form.telephone.data
+        old_user = FrontUser.query.filter_by(telephone=telephone).first()
+        if not old_user:
+            return restful.params_error(message="手机号码未注册！")
         captcha = Captcha.gene_text(number=4)
         print('发送的短信验证码是:', captcha)
         send_sms_captcha(telephone,captcha)
